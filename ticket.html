@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TICKET DE VENTA</title>
+    <link rel="icon" href="https://github.com/rimedhn/pulperialempira/blob/main/Logo.jpeg?raw=true" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <style>
+      #thermal-pos {
+        max-width: 80mm;
+        line-height: 1.1;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 3.5mm;
+        text-align: center;
+      }
+      @media print {
+        @page {
+          size: 80mm auto;
+          margin: 5mm 2.5mm 5mm 2.5mm;
+        }
+        html, body {
+          width: 100%;
+          margin: 0;
+          padding: 0;
+        }
+        .listitem td {
+          font-size: 3.1mm !important;
+        }
+        .products-table-header td {
+          font-size: 3.1mm !important;
+        }
+      }
+      .mi-imagen {
+        width: 100%;
+        max-width: 200px;
+        height: auto;
+        margin-bottom: 1mm;
+      }
+      .label {
+        text-align: center;
+        font-size: 4mm;
+        line-height: 1.2;
+        margin: 0.5mm 0;
+      }
+      .label b#email {
+        display: inline-block;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        max-width: 100%;
+        font-size: 3.5mm;
+      }
+      #thermal-pos table {
+        width: 100%;
+        table-layout: fixed;
+        margin-bottom: 0.5mm;
+        border-collapse: collapse;
+      }
+      .informasi {
+        vertical-align: top;
+        text-align: left;
+        font-size: 3.5mm;
+        padding: 0;
+        line-height: 1.1;
+        white-space: normal;
+      }
+      .section-title {
+        font-weight: bold;
+        font-size: 3.8mm;
+        margin: 1mm 0 0.5mm 0;
+      }
+      .condiciones-label { width: 55%; }
+      .condiciones-valor { width: 35%; }
+      /* Encabezado - solo visual */
+      .products-table-header {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+      }
+      .products-table-header td {
+        width: 25%;
+        text-align: center;
+        font-weight: bold;
+        font-size: 3.2mm;
+        line-height: 1.1;
+        padding: 0.5mm 1px;
+        border: none;
+        background: none;
+        letter-spacing: 0.2mm;
+      }
+      /* Tabla de valores (detalle): anchos individuales y fuente optimizada */
+      #productTable {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+      }
+      #productTable .qty    { width: 10%; text-align: center; }
+      #productTable .Price  { width: 30%; text-align: right; }
+      #productTable .Desc   { width: 30%; text-align: right; }
+      #productTable .Amount { width: 30%; text-align: right; }
+      /* Fila fantasma para fijar los anchos */
+      #productTable .column-width-fix td {
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 0 !important;
+        border: none !important;
+        height: 0 !important;
+        line-height: 0 !important;
+      }
+      .descriptions {
+        width: 100%;
+        text-align: left;
+        font-weight: bold;
+        font-size: 3.2mm;
+        white-space: normal;
+        word-break: break-word;
+        line-height: 1.1;
+      }
+      .listitem td {
+        font-size: 3.1mm;
+        padding: 0 1px;
+        line-height: 1.1;
+        white-space: nowrap;
+        overflow: visible;
+        text-overflow: unset;
+      }
+      .totals-table { margin-top: 1mm; }
+      .detail { text-align: left; font-size: 3.5mm; padding: 0; line-height: 1.1; }
+      .detail1 { text-align: right; font-size: 3.5mm; padding: 0; line-height: 1.1; }
+      .grand-total .detail, .grand-total .detail1 { font-weight: bold; font-size: 4mm; }
+      .divider { margin: 0.5mm 0; border-top: 1px dashed #000; width: 100%; }
+      #montoLetras { font-size: 3.2mm; padding: 1mm 0; line-height: 1.1; }
+      .cai-info { font-size: 3.2mm; line-height: 1.1; margin-top: 1mm; }
+      .footer-info { font-size: 3.2mm; padding: 0.5mm 0 1mm 0; line-height: 1.1; }
+      #barcode-svg {
+        display: block;
+        max-width: 60mm;
+        height: 10mm !important;
+        margin: 1mm auto;
+      }
+    </style>
+  </head>
+  <body id="all">
+    <div id="thermal-pos">
+      <div class="label">
+        <img src="https://github.com/rimedhn/pulperialempira/blob/main/Logo.jpeg?raw=true" alt="Logo Empresa" class="mi-imagen" onerror="this.style.display='none'" /><br />
+        <b id="empresa"></b><br />
+        <b id="razon"></b>
+        <div class="label"> <b>RTN: <span id="rtn"></span></b> </div>
+        <div class="label" style="font-size: 3.5mm;"> <b>Dir: <span id="direccion"></span></b> </div>
+        <div class="label" style="margin-top: 0;"> Teléfono: <span id="telefono"></span> | Email: <b id="email"></b> </div>
+      </div>
+
+      <div class="divider"></div>
+      <div align="center" id="tipodoc" class="section-title" style="margin-top: 0;"></div>
+      <div class="divider"></div>
+
+      <table class="transaction-data">
+        <tr>
+          <td class="informasi" style="width: 31%;">Factura:</td>
+          <td class="informasi" style="width: 69%;" id="factura"></td>
+        </tr>
+        <tr>
+          <td class="informasi" style="width: 31%;">Fecha:</td>
+          <td class="informasi" style="width: 69%;" id="date"></td>
+        </tr>
+      </table>
+
+      <div class="divider"></div>
+      <table class="transaction-data">
+        <tr>
+          <td class="informasi" style="width: 31%;">Cliente:</td>
+          <td class="informasi" style="width: 69%;" id="cliente"></td>
+        </tr>
+        <tr>
+          <td class="informasi" style="width: 31%;">RTN:</td>
+          <td class="informasi" style="width: 69%;" id="rtncliente"></td>
+        </tr>
+        <tr>
+          <td class="informasi" style="width: 31%;">Dirección:</td>
+          <td class="informasi" style="width: 69%;" id="direccioncliente"></td>
+        </tr>
+        <tr>
+          <td class="informasi" style="width: 31%;">Teléfono:</td>
+          <td class="informasi" style="width: 69%;" id="telefonocliente"></td>
+        </tr>
+      </table>
+
+      <div class="divider"></div>
+      <table class="transaction-data">
+        <tr>
+          <td class="informasi condiciones-label">Forma de pago:</td>
+          <td class="informasi condiciones-valor" id="formapago"></td>
+        </tr>
+        <tr>
+          <td class="informasi condiciones-label">Plazo en días:</td>
+          <td class="informasi condiciones-valor" id="plazo"></td>
+        </tr>
+        <tr>
+          <td class="informasi condiciones-label">Cantidad de pagos:</td>
+          <td class="informasi condiciones-valor" id="pagos"></td>
+        </tr>
+        <tr>
+          <td class="informasi condiciones-label">Cuota por pago:</td>
+          <td class="informasi condiciones-valor">L <span id="cuota"></span></td>
+        </tr>
+      </table>
+
+      <div align="center" class="section-title">Datos del cliente exonerado</div>
+      <table class="transaction-data">
+        <tr>
+          <td class="informasi" style="width: 50%;">O. C. Exenta: <span id="ocexe"></span></td>
+          <td class="informasi" style="width: 50%;">O. C. Exonerada: <span id="ocexo"></span></td>
+        </tr>
+        <tr>
+          <td class="informasi" style="width: 50%;">No. Reg. SAG: <span id="nosag"></span></td>
+          <td class="informasi" style="width: 50%;"></td>
+        </tr>
+      </table>
+
+      <div class="divider"></div>
+      <div align="center" class="section-title">Detalle</div>
+      <div class="divider"></div>
+
+      <table class="products-table-header">
+        <tr>
+          <td class="hdr-qty">Cant</td>
+          <td class="hdr-price">Precio</td>
+          <td class="hdr-desc">Desc.</td>
+          <td class="hdr-amount">Monto</td>
+        </tr>
+      </table>
+      <div class="divider"></div>
+
+      <table id="productTable">
+        <tr class="column-width-fix">
+          <td class="qty"></td>
+          <td class="Price"></td>
+          <td class="Desc"></td>
+          <td class="Amount"></td>
+        </tr>
+      </table>
+      <div class="divider"></div>
+
+      <table class="totals-table">
+        <tr>
+          <td class="detail">Subtotal:</td>
+          <td class="detail1">L <span id="subtotal"></span></td>
+        </tr>
+        <tr>
+          <td class="detail">Descuento:</td>
+          <td class="detail1">L <span id="descuento"></span></td>
+        </tr>
+        <tr>
+          <td class="detail">Subtotal exento:</td>
+          <td class="detail1">L <span id="subtotalexe"></span></td>
+        </tr>
+        <tr>
+          <td class="detail">Subtotal exonerado:</td>
+          <td class="detail1">L <span id="subtotalexo"></span></td>
+        </tr>
+        <tr>
+          <td class="detail">Subtotal 15%:</td>
+          <td class="detail1">L <span id="subtotalisv15"></span></td>
+        </tr>
+        <tr>
+          <td class="detail">Subtotal 18%:</td>
+          <td class="detail1">L <span id="subtotalisv18"></span></td>
+        </tr>
+        <tr>
+          <td class="detail">Impuesto 15%:</td>
+          <td class="detail1">L <span id="isv15"></span></td>
+        </tr>
+        <tr>
+          <td class="detail">Impuesto 18%:</td>
+          <td class="detail1">L <span id="isv18"></span></td>
+        </tr>
+        <tr class="grand-total">
+          <td class="detail">Total venta:</td>
+          <td class="detail1">L <span id="total"></span></td>
+        </tr>
+        <tr>
+          <td class="detail">Recibido:</td>
+          <td class="detail1">L <span id="recibido"></span></td>
+        </tr>
+        <tr>
+          <td class="detail">Cambio:</td>
+          <td class="detail1">L <span id="cambio"></span></td>
+        </tr>
+      </table>
+
+      <div class="divider"></div>
+      <div id="montoLetras"></div>
+      <div class="divider"></div>
+
+      <div class="cai-info" align="center">
+        CAI: <span id="cai"></span><br />
+        Vencimiento: <span id="limite"></span><br />
+        Rango autorizado: <span id="rango"></span>
+      </div>
+      <div class="divider"></div>
+
+      <div align="center" style="font-size: 4mm; font-weight: bold; margin-bottom: 1mm;">¡Gracias por su preferencia!</div>
+      <div align="center" style="font-size: 3mm;">Original: Cliente, Copia: Emisor</div>
+
+      <div style="text-align: center;">
+        <svg id="barcode-svg"></svg>
+      </div>
+
+      <div class="divider"></div>
+      <div class="footer-info">
+        <span>www.rmposhn.com</span> | <span>indime.hn@gmail.com</span> | <span>(+504) 9359-3126</span>
+      </div>
+    </div>
+
+    <script>
+      function getUrlParameter(name) {
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
+        var results = regex.exec(location.search);
+        return results === null
+          ? ""
+          : decodeURIComponent(results[1].replace(/\+/g, " "));
+      }
+      function formatCurrency(value) {
+        if (value === null || value === undefined || String(value).trim() === "") {
+          return "0.00";
+        }
+        const number = parseFloat(String(value).replace(/,/g, ''));
+        if (isNaN(number)) {
+          return "0.00";
+        }
+        let [integerPart, decimalPart] = number.toFixed(2).split('.');
+        integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        return integerPart + "." + (decimalPart || "00");
+      }
+      function setTextContent(id, value, isCurrency = false) {
+        const element = document.getElementById(id);
+        if (element) {
+          if (isCurrency) {
+            element.textContent = formatCurrency(value);
+          } else {
+            element.textContent = value;
+          }
+        }
+      }
+      setTextContent("empresa", getUrlParameter("empresa"));
+      setTextContent("razon", getUrlParameter("razon"));
+      setTextContent("rtn", getUrlParameter("rtn"));
+      setTextContent("direccion", getUrlParameter("direccion"));
+      setTextContent("telefono", getUrlParameter("telefono"));
+      setTextContent("email", getUrlParameter("email"));
+      setTextContent("tipodoc", getUrlParameter("tipodoc"));
+      setTextContent("factura", getUrlParameter("factura"));
+      setTextContent("date", getUrlParameter("date"));
+      setTextContent("cai", getUrlParameter("cai"));
+      setTextContent("rango", getUrlParameter("rango"));
+      setTextContent("limite", getUrlParameter("limite"));
+      setTextContent("cliente", getUrlParameter("cliente"));
+      setTextContent("rtncliente", getUrlParameter("rtncliente"));
+      setTextContent("direccioncliente", getUrlParameter("direccioncliente"));
+      setTextContent("telefonocliente", getUrlParameter("telefonocliente"));
+      setTextContent("formapago", getUrlParameter("formapago"));
+      setTextContent("plazo", getUrlParameter("plazo"));
+      setTextContent("pagos", getUrlParameter("pagos"));
+      setTextContent("ocexe", getUrlParameter("ocexe"));
+      setTextContent("ocexo", getUrlParameter("ocexo"));
+      setTextContent("nosag", getUrlParameter("nosag"));
+      setTextContent("cuota", getUrlParameter("cuota"), true);
+      setTextContent("subtotal", getUrlParameter("subtotal"), true);
+      setTextContent("descuento", getUrlParameter("descuento"), true);
+      setTextContent("subtotalexe", getUrlParameter("subtotalexe"), true);
+      setTextContent("subtotalexo", getUrlParameter("subtotalexo"), true);
+      setTextContent("subtotalisv15", getUrlParameter("subtotalisv15"), true);
+      setTextContent("subtotalisv18", getUrlParameter("subtotalisv18"), true);
+      setTextContent("isv15", getUrlParameter("isv15"), true);
+      setTextContent("isv18", getUrlParameter("isv18"), true);
+      setTextContent("total", getUrlParameter("total"), true);
+      setTextContent("recibido", getUrlParameter("recibido"), true);
+      setTextContent("cambio", getUrlParameter("cambio"), true);
+
+      var descriptions = getUrlParameter("descriptions") ? getUrlParameter("descriptions").split(",") : [];
+      var quantitys = getUrlParameter("quantitys") ? getUrlParameter("quantitys").split(",") : [];
+      var prices = getUrlParameter("price") ? getUrlParameter("price").split(",") : [];
+      var descproductos = getUrlParameter("descproducto") ? getUrlParameter("descproducto").split(",") : [];
+      var amounts = getUrlParameter("amounts") ? getUrlParameter("amounts").split(",") : [];
+
+      var productTable = document.getElementById("productTable");
+      // La fila fantasma ya está en el HTML
+      if (descriptions.length > 0 && descriptions[0] !== "") {
+        for (var i = 0; i < descriptions.length; i++) {
+          var descriptionRow = productTable.insertRow();
+          descriptionRow.innerHTML = `
+            <td colspan="4" class="descriptions">${descriptions[i] || ''}</td>
+          `;
+          var detailsRow = productTable.insertRow();
+          detailsRow.className = "listitem";
+          detailsRow.innerHTML = `
+            <td class="qty">${quantitys[i] || '0'}</td>
+            <td class="Price">${formatCurrency(prices[i] || '0')}</td>
+            <td class="Desc">${formatCurrency(descproductos[i] || '0')}</td>
+            <td class="Amount">${formatCurrency(amounts[i] || '0')}</td>
+          `;
+        }
+      }
+      var folioParam = getUrlParameter("Folio_1");
+      if (folioParam) {
+        JsBarcode("#barcode-svg", folioParam, {
+          format: "CODE128",
+          displayValue: false,
+          height: 50,
+          width: 2
+        });
+      } else {
+        document.getElementById("barcode-svg").style.display = 'none';
+      }
+      function convertirGrupo(n) {
+        if (n === 0) return "";
+        if (n === 100) return "CIEN";
+        let resultado = "";
+        const centenas = ["", "CIENTO", "DOSCIENTOS", "TRESCIENTOS", "CUATROCIENTOS", "QUINIENTOS", "SEISCIENTOS", "SETECIENTOS", "OCHOCIENTOS", "NOVECIENTOS"];
+        const unidades = ["", "UN", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO", "NUEVE", "DIEZ", "ONCE", "DOCE", "TRECE", "CATORCE", "QUINCE", "DIECISEIS", "DIECISIETE", "DIECIOCHO", "DIECINUEVE"];
+        const decenas = ["", "", "VEINTE", "TREINTA", "CUARENTA", "CINCUENTA", "SESENTA", "SETENTA", "OCHENTA", "NOVENTA"];
+        if (n >= 100) {
+          resultado += centenas[Math.floor(n / 100)] + " ";
+          n %= 100;
+        }
+        if (n > 0) {
+          if (n < 20) {
+            resultado += unidades[n];
+          } else {
+            resultado += decenas[Math.floor(n / 10)];
+            if (n % 10 !== 0) {
+              resultado += " Y " + unidades[n % 10];
+            }
+          }
+        }
+        return resultado.trim();
+      }
+      function convertirMiles(n) {
+        if (n === 0) return "";
+        if (n === 1) return "MIL";
+        return convertirGrupo(n) + " MIL";
+      }
+      function convertirMillones(n) {
+        if (n === 0) return "";
+        if (n === 1) return "UN MILLON";
+        return convertirGrupo(n) + " MILLONES";
+      }
+      function numeroALetras(numero) {
+        const numOriginal = numero;
+        numero = parseFloat(numero);
+        if (isNaN(numero)) return "VALOR INVÁLIDO";
+        if (numero === 0) return "CERO LEMPIRAS CON 00/100";
+        let [parteEnteraStr, parteDecimalStr] = String(numOriginal.toFixed(2)).split('.');
+        let parteEntera = parseInt(parteEnteraStr, 10);
+        let parteDecimal = parseInt(parteDecimalStr || "0", 10);
+        let resultado = "";
+        let esNegativo = parteEntera < 0;
+        parteEntera = Math.abs(parteEntera);
+        let millones = Math.floor(parteEntera / 1000000);
+        let miles = Math.floor((parteEntera % 1000000) / 1000);
+        let resto = parteEntera % 1000;
+        if (millones > 0) resultado += convertirMillones(millones) + " ";
+        if (miles > 0) resultado += convertirMiles(miles) + " ";
+        if (parteEntera === 0) {
+          resultado = "CERO ";
+        } else if (resto > 0 || (millones === 0 && miles === 0)) {
+          resultado += convertirGrupo(resto);
+        }
+        resultado = resultado.trim();
+        if (esNegativo) resultado = "MENOS " + resultado;
+        resultado += (parteEntera === 1 && millones === 0 && miles === 0 && resultado === "UN") ? " LEMPIRA" : " LEMPIRAS";
+        resultado += " CON " + (parteDecimal < 10 ? "0"+parteDecimal : parteDecimal) + "/100";
+        return resultado;
+      }
+      var rawTotalStr = getUrlParameter("total");
+      var totalForNumeroALetras = parseFloat(String(rawTotalStr).replace(/,/g, ''));
+      if (isNaN(totalForNumeroALetras)) {
+        totalForNumeroALetras = 0;
+      }
+      document.getElementById("montoLetras").textContent = "SON: " + numeroALetras(totalForNumeroALetras);
+      window.onload = function () {
+        setTimeout(function() { window.print(); }, 500);
+      };
+    </script>
+  </body>
+</html>
